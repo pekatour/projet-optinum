@@ -31,4 +31,3 @@ Vous trouverez un cours sur Julia à la page [Introduction to Julia programming 
 ## Illustration de la méthode de Newton
 
 ![Newton](newton.gif)
-# projet-optinum
