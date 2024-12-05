@@ -35,7 +35,26 @@ function gct(g::Vector{<:Real}, H::Matrix{<:Real}, Δ::Real;
     tol_abs::Real = 1e-10, 
     tol_rel::Real = 1e-8)
 
+    nb_iters=0
+    gk=g
+    pk=-g
     s = zeros(length(g))
+    arret = false
+    
+    while !arret
+        κk = transpose(pk)*H*pk
+        if κk <=0
+            σk
+        end
+
+        nb_iters++
+
+        if norm(gk) <= max(tol_rel*norm(g),tol_abs)
+        	arret = true
+        elseif nb_iters == max_iter
+        	arret = true
+        end
+    end
 
    return s
 end
