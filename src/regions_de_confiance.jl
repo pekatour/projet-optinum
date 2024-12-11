@@ -96,7 +96,7 @@ function regions_de_confiance(f::Function, gradf::Function, hessf::Function, x0:
         end
 
     	xs = vcat(xs, [x_sol])
-        nb_iters+=1 
+        nb_iters+=1
 
         xkp1 = x_sol
     	f_sol = f(xkp1)

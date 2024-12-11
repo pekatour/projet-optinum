@@ -35,19 +35,55 @@ function gct(g::Vector{<:Real}, H::Matrix{<:Real}, Δ::Real;
     tol_abs::Real = 1e-10, 
     tol_rel::Real = 1e-8)
 
+    
+    
+    function solve²(a,b,c)
+        """ Uniquement si le déterminant est > 0"""
+        s1 = (-b + sqrt(b^2 - 4*a*c)) / (2*a)
+        s2 = (-b - sqrt(b^2 - 4*a*c)) / (2*a)
+        return s1,s2
+    end
+
+    function q_moins_f(s) return transpose(g)*s + 0.5*transpose(s)*H*s end
+
+        
     nb_iters=0
     gk=g
     pk=-g
-    s = zeros(length(g))
+    sk = zeros(length(g))
     arret = false
-    
+
+    if norm(gk) <= max(tol_rel*norm(g),tol_abs)
+        arret = true
+    elseif nb_iters == max_iter
+        arret = true
+    end
+
     while !arret
         κk = transpose(pk)*H*pk
         if κk <=0
-            σk
+            σk1,σk2 = solve²(transpose(pk)*pk,
+                            2*transpose(sk)*pk,
+                            transpose(sk) * sk -Δ^2)
+            if q_moins_f(σk1*pk + sk) < q_moins_f(σk2*pk + sk)
+                σk=σk1
+            else
+                σk=σk2
+            end
+            return sk + σk*pk
         end
 
-        nb_iters++
+        αk = (transpose(gk)*gk)/κk
+        if norm(sk + αk*pk) >= Δ
+            σk,_ = solve²(transpose(pk)*pk,2*transpose(sk)*pk,transpose(sk) * sk-Δ^2)
+            return sk + σk*pk
+        end
+        sk = sk + αk*pk
+        g_p = gk
+        gk = gk + αk*H*pk
+        βk = (transpose(gk) * gk) / (transpose(g_p) * g_p)
+        pk = -gk + βk*pk
+        nb_iters+=1
 
         if norm(gk) <= max(tol_rel*norm(g),tol_abs)
         	arret = true
@@ -56,5 +92,5 @@ function gct(g::Vector{<:Real}, H::Matrix{<:Real}, Δ::Real;
         end
     end
 
-   return s
+   return sk
 end
