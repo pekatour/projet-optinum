@@ -78,28 +78,28 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
     λk = λ0
     μk = μ0
 
+    function L(x)
+        return f(x) + transpose(λk) * c(x) + (μk/2) * norm(c(x))^2
+    end
+
+    function gradL(x) 
+        return gradf(x) + gradc(x) * λk + μk * gradc(x) * c(x)
+    end
+
+    function hessL(x)
+        return hessf(x) + λk*hessc(x) + μk * gradc(x) * transpose(gradc(x)) + μk * c(x) * hessc(x)
+    end
+
     arret = false
 
     while !arret
-
-        function L(x)
-            f(x) + transpose(λk) * c(x) + (μk/2) * norm(c(x))^2
-        end
-    
-        function gradL(x) 
-            gradf(x) + gradc(x) * λk + μk * gradc(x) * c(x)
-        end
-    
-        function hessL(x)
-            hessf(x) + λk*hessc(x) + μk * gradc(x) * transpose(gradc(x)) + μk * c(x) * hessc(x)
-        end
-
+        
         if algo_noc == "newton"
-            x_sol, _, _, _, _ = newton(L, gradL, hessL, x_sol)
+            x_sol, _, _, _, _ = newton(L, gradL, hessL, x_sol, tol_abs=εk)
         elseif algo_noc == "rc-gct"
-            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="gct")
+            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="gct", tol_abs=εk)
         else
-            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="cauchy")
+            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="cauchy", tol_abs=εk)
         end
 
         if norm(c(x_sol)) <= ηk
@@ -108,22 +108,18 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
             ηk = ηk/(μk^β)
         else
             μk = τ*μk
-            εk = εk/μk
+            εk = 1/(μk*μ0) 
             ηk = η/(μk^α)
         end
 
         λs = vcat(λs, λk)
         μs = vcat(μs, μk)
         nb_iters+=1
-
-        if norm(gradL(x_sol)) <= max(tol_rel*norm(gradL(x0)),tol_abs)
-        	# test sur le lagrangien non augmenté
+        
+        if norm(gradf(x_sol) + gradc(x_sol) * λk) <= max(tol_rel*norm(gradf(x0) + gradc(x0) * λ0),tol_abs) && norm(c(x_sol)) <=  max(tol_rel*norm(c(x0)),tol_abs)
+        	# test sur le lagrangien non augmenté et zone de contrainte
             flag = 0
         	arret = true
-        elseif norm(c(x_sol)) <=  max(tol_rel*norm(c(x0)),tol_abs)
-            # test si la contrainte est violée
-            flag = -1 # aucun flag ne correspond ?
-            arret = true
     	elseif nb_iters == max_iter
         	flag = 1
         	arret = true
