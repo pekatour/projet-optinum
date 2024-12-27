@@ -70,6 +70,68 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
     μs = [μ0] # vous pouvez faire μs = vcat(μs, μk) pour concaténer les valeurs
     λs = [λ0]
 
+    β = 0.9
+    η = 0.1258925
+    α = 0.1
+    εk = 1/μ0
+    ηk = η/(μ0^α)
+    λk = λ0
+    μk = μ0
+
+    arret = false
+
+    while !arret
+
+        function L(x)
+            f(x) + transpose(λk) * c(x) + (μk/2) * norm(c(x))^2
+        end
+    
+        function gradL(x) 
+            gradf(x) + gradc(x) * λk + μk * gradc(x) * c(x)
+        end
+    
+        function hessL(x)
+            hessf(x) + λk*hessc(x) + μk * gradc(x) * transpose(gradc(x)) + μk * c(x) * hessc(x)
+        end
+
+        if algo_noc == "newton"
+            x_sol, _, _, _, _ = newton(L, gradL, hessL, x_sol)
+        elseif algo_noc == "rc-gct"
+            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="gct")
+        else
+            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="cauchy")
+        end
+
+        if norm(c(x_sol)) <= ηk
+            λk = λk + μk*c(x_sol)
+            εk = εk/μk
+            ηk = ηk/(μk^β)
+        else
+            μk = τ*μk
+            εk = εk/μk
+            ηk = η/(μk^α)
+        end
+
+        λs = vcat(λs, λk)
+        μs = vcat(μs, μk)
+        nb_iters+=1
+
+        if norm(gradL(x_sol)) <= max(tol_rel*norm(gradL(x0)),tol_abs)
+        	# test sur le lagrangien non augmenté
+            flag = 0
+        	arret = true
+        elseif norm(c(x_sol)) <=  max(tol_rel*norm(c(x0)),tol_abs)
+            # test si la contrainte est violée
+            flag = -1 # aucun flag ne correspond ?
+            arret = true
+    	elseif nb_iters == max_iter
+        	flag = 1
+        	arret = true
+    	end
+    end
+
+    f_sol = f(x_sol)
+
     return x_sol, f_sol, flag, nb_iters, μs, λs
 
 end
