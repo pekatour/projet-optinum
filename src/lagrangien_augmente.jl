@@ -127,7 +127,14 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
     end
 
     f_sol = f(x_sol)
-
+    print("Coefs : ")
+    print(λk)
+    print(" ")
+    print(μk)
+    print("\n")
+        # print("Flags : ")
+        # print(flag)
+        # print("\n")
     return x_sol, f_sol, flag, nb_iters, μs, λs
 
 end
