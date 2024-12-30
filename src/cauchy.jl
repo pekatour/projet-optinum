@@ -33,11 +33,11 @@ Approximation de la solution du problème
 function cauchy(g::Vector{<:Real}, H::Matrix{<:Real}, Δ::Real; tol_abs::Real = 1e-10)
 
     a = transpose(g)* H * g
-
+    n = norm(g)
     if a <= 0
-        t = Δ / norm(g) 
+        t = Δ / n
     else
-        t = min(Δ / norm(g), norm(g)^2 / a)
+        t = min(Δ / n, n^2 / a)
     end
     s = - t * g
 
