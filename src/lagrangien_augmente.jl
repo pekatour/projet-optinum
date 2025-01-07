@@ -95,11 +95,11 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
     while !arret
         
         if algo_noc == "newton"
-            x_sol, _, _, _, _ = newton(L, gradL, hessL, x_sol, tol_abs=εk)
+            x_sol, _, _, _, _ = newton(L, gradL, hessL, x_sol, tol_abs=εk, tol_rel=0)
         elseif algo_noc == "rc-gct"
-            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="gct", tol_abs=εk)
+            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="gct", tol_abs=εk, tol_rel=0)
         else
-            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="cauchy", tol_abs=εk)
+            x_sol, _, _, _, _ = regions_de_confiance(L, gradL, hessL, x_sol, algo_pas="cauchy", tol_abs=εk, tol_rel=0)
         end
 
         if norm(c(x_sol)) <= ηk
@@ -127,6 +127,8 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
     end
 
     f_sol = f(x_sol)
+
+    println(μk)
     
     return x_sol, f_sol, flag, nb_iters, μs, λs
 
