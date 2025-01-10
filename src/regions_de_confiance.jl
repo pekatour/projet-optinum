@@ -115,6 +115,5 @@ function regions_de_confiance(f::Function, gradf::Function, hessf::Function, x0:
         	arret = true
     	end
     end
-
     return x_sol, f_sol, flag, nb_iters, xs
 end

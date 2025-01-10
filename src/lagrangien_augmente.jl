@@ -74,6 +74,7 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
     η = 0.1258925
     α = 0.1
     εk = 1/μ0
+    ε0 = 1/μ0
     ηk = η/(μ0^α)
     λk = λ0
     μk = μ0
@@ -108,7 +109,7 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
             ηk = ηk/(μk^β)
         else
             μk = τ*μk
-            εk = 1/(μk*μ0) 
+            εk = ε0/μk 
             ηk = η/(μk^α)
         end
 
@@ -128,7 +129,7 @@ function lagrangien_augmente(f::Function, gradf::Function, hessf::Function,
 
     f_sol = f(x_sol)
 
-    println(μk)
+   # println(μk)
     
     return x_sol, f_sol, flag, nb_iters, μs, λs
 
